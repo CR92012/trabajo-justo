@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trabajo justo: juego de decisiones</title>
+<meta name="description" content="Juego interactivo para conocer tus derechos laborales y reconocer el trabajo inadecuado para adolescentes de 15 a 17 años.">
+<style>
+:root{--bg:#eef1f5;--card:#fff;--ink:#1b2a41;--mute:#4f5d75;--line:#cfd6e2;--y:#ffc300;--ok:#1f8a4c;--okbg:#e3f4ea;--mid:#9a6700;--midbg:#fff3cf;--bad:#c1121f;--badbg:#fde5e7;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#10192a;--card:#1b2a41;--ink:#eef1f5;--mute:#a9b4c8;--line:#34476a;--ok:#6fdc9a;--okbg:#17382a;--mid:#ffd45c;--midbg:#3d3410;--bad:#ff8a93;--badbg:#44191e;color-scheme:dark}}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+[hidden]{display:none!important}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1,h2{font-family:"Franklin Gothic Medium","Arial Narrow",Arial,sans-serif;line-height:1.1;margin:0 0 12px;letter-spacing:-.01em}
+h1{font-size:2.6rem}
+h2{font-size:1.7rem}
+p{margin:0 0 14px}
+.lead{font-size:1.1rem;color:var(--mute)}
+.stripe{border-left:8px solid var(--y);background:var(--card);padding:18px 18px 8px;border-radius:4px}
+.choose{display:grid;gap:12px;margin:22px 0}
+.big{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--ink);border-radius:4px;padding:16px;cursor:pointer}
+.big b{display:block;font-size:1.15rem}
+.big span{color:var(--mute);font-size:.95rem}
+.big:hover,.big:focus-visible{background:var(--y);color:#1b2a41}
+.big:hover span,.big:focus-visible span{color:#1b2a41}
+button:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+.note{font-size:.85rem;color:var(--mute)}
+#meters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.m{font-size:.8rem;color:var(--mute)}
+.bar{height:10px;background:var(--line);border-radius:2px;margin-top:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink);transition:width .5s}
+.prog{font-size:.9rem;color:var(--mute);margin-bottom:6px}
+.case{border-left:8px solid var(--y);background:var(--card);padding:18px;border-radius:4px;margin-bottom:16px}
+.case h2{display:flex;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{font:inherit;text-align:left;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:4px;padding:14px;cursor:pointer}
+.opt:not(:disabled):hover{border-color:var(--ink)}
+.opt:disabled{cursor:default;opacity:.55}
+.opt.g2{background:var(--okbg);border-color:var(--ok);opacity:1}
+.opt.g1{background:var(--midbg);border-color:var(--mid);opacity:1}
+.opt.g0{background:var(--badbg);border-color:var(--bad);opacity:1}
+.opt.sel{border-width:4px}
+.fb{margin-top:16px;background:var(--card);border:2px solid var(--ink);border-radius:4px;padding:16px;animation:in .25s}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.fb{animation:none}.bar i{transition:none}}
+.fact{font-size:.95rem;color:var(--mute);border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.go{font:inherit;font-weight:700;background:var(--y);color:#1b2a41;border:0;border-radius:4px;padding:13px 20px;cursor:pointer;margin-top:6px}
+.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+.rank{list-style:none;padding:0;margin:16px 0}
+.rank li{padding:10px 0;border-bottom:1px solid var(--line)}
+.score{font-family:"Franklin Gothic Medium","Arial Narrow",Arial,sans-serif;font-size:3.4rem;line-height:1}
+footer{margin-top:30px}
+</style>
+</head>
+<body>
+<main>
+
+<section id="intro">
+  <h1>Trabajo justo</h1>
+  <p class="lead">Un juego de decisiones sobre derechos laborales. Cada caso tiene consecuencias: ganar dinero no siempre es ganar.</p>
+  <div class="stripe">
+    <p>Cuidas tres cosas a la vez: tu <b>ingreso</b>, tus <b>derechos</b> y tu <b>bienestar</b>. Elige una historia:</p>
+  </div>
+  <div class="choose">
+    <button class="big" onclick="start('adult')"><b>Busco empleo</b><span>Ofertas con sueldo bajo, horas extra sin pago y contratos dudosos.</span></button>
+    <button class="big" onclick="start('teen')"><b>Tengo entre 15 y 17 años</b><span>Trabajo de adolescentes: qué es adecuado, qué es riesgoso y cuándo pedir ayuda.</span></button>
+  </div>
+  <p class="note">Contenido educativo basado en principios de la OIT (Convenios 138 y 182). No es asesoría legal: las leyes cambian según el país, así que consulta las de tu lugar.</p>
+</section>
+
+<section id="game" hidden>
+  <div id="meters"></div>
+  <div class="prog" id="prog"></div>
+  <div class="case"><h2><span id="emoji"></span><span id="title"></span></h2><p id="story"></p></div>
+  <div class="opts" id="opts"></div>
+  <div class="fb" id="fb" hidden>
+    <p id="fbText"></p>
+    <p class="fact" id="fact"></p>
+    <button class="go" id="next" onclick="next()"></button>
+  </div>
+</section>
+
+<section id="end" hidden>
+  <div class="score" id="score"></div>
+  <h2 id="rt"></h2>
+  <p id="rp"></p>
+  <ul class="rank" id="rank"></ul>
+  <div class="stripe"><p id="help"></p></div>
+  <p><button class="go" onclick="show('intro')">Jugar otra historia</button></p>
+</section>
+
+<footer class="note">Si vives una situación así, habla con un adulto de confianza o acude a la autoridad laboral o la defensoría de tu país.</footer>
+</main>
+
+<script>
+// Casos: t=opción, i/d/b=efecto en ingreso/derechos/bienestar, g=2 mejor, 1 parcial, 0 riesgoso, f=explicación.
+// Edita este bloque para adaptar los textos a la ley de tu país.
+const D={
+adult:[
+{e:"💼",t:"La oferta que “es lo que hay”",
+p:"Llevas semanas sin empleo. Te ofrecen un puesto con un sueldo menor al salario mínimo legal y una jornada de 12 horas en vez de 8. El reclutador dice: “Hay otras diez personas esperando”.",
+k:"El salario mínimo es un piso, no un techo, y la jornada ordinaria diurna suele ser de 8 horas. Verifica los valores vigentes en tu país.",
+o:[
+{t:"Aceptar de inmediato; necesito el dinero.",i:10,d:-20,b:-15,g:0,f:"Tendrás ingreso rápido, pero aceptas trabajar más horas por menos pago por hora. El cansancio se acumula y los abusos se normalizan."},
+{t:"Pedir el contrato por escrito y preguntar por qué no se respeta el mínimo.",i:-5,d:15,b:5,g:2,f:"Pedirlo todo por escrito es el primer paso. Si se niegan, ya tienes una señal clara de alerta."},
+{t:"Rechazar la oferta y reportarla ante la autoridad laboral.",i:-10,d:20,b:5,g:2,f:"Cuesta a corto plazo, pero protege tus derechos y puede evitar que otras personas caigan en lo mismo."}]},
+{e:"⏰",t:"“Quédate un ratito más”",
+p:"Llevas un mes en el trabajo. Tu jefe pide que te quedes “solo un ratito”. Ya van tres semanas saliendo dos horas tarde, sin que te las paguen.",
+k:"Las horas extra se pagan con recargo y normalmente tienen un tope legal. Registrar tus horas te da evidencia.",
+o:[
+{t:"Seguir callado para quedar bien.",i:0,d:-15,b:-15,g:0,f:"Regalas tiempo de tu vida y sientan un precedente: lo que hoy es “un favor” mañana será obligación."},
+{t:"Llevar un registro de tus horas y pedir que se paguen como extras.",i:10,d:15,b:0,g:2,f:"Con un registro claro tu petición es difícil de ignorar."},
+{t:"Hablar con tus compañeros y plantearlo juntos.",i:5,d:15,b:10,g:2,f:"Los reclamos colectivos suelen tener más fuerza y menos riesgo personal."}]},
+{e:"📄",t:"Sin contrato ni seguro",
+p:"El dueño te dice: “Aquí no hacemos contratos ni inscribimos a nadie al seguro, pero te pago un poco más en efectivo”.",
+k:"El contrato y la seguridad social te dan atención médica, antigüedad y respaldo si te lastimas o te despiden.",
+o:[
+{t:"Aceptar: más dinero ahora.",i:10,d:-15,b:-10,g:0,f:"Sin contrato ni seguridad social no tienes cobertura médica ni protección si algo sale mal."},
+{t:"Aceptar, pero guardar mensajes y comprobantes de pago.",i:5,d:5,b:-5,g:1,f:"La evidencia ayuda si después reclamas, pero no reemplaza al contrato ni a la seguridad social."},
+{t:"Pedir contrato e inscripción a la seguridad social como condición.",i:-5,d:20,b:5,g:2,f:"Ponerlo como condición muestra que conoces tus derechos. Un empleador serio no debería oponerse."}]},
+{e:"✍️",t:"Te despiden y te dan un papel",
+p:"Tu jefe te despide sin avisar. Te ofrece pagarte rápido, pero solo si firmas un documento que dice que renunciaste voluntariamente.",
+k:"Nunca firmes hojas en blanco ni documentos que no entiendas. Muchos países ofrecen defensoría laboral gratuita.",
+o:[
+{t:"Firmar para cobrar rápido.",i:10,d:-20,b:-5,g:0,f:"Al firmar una renuncia, puedes perder el derecho a reclamar una indemnización."},
+{t:"Pedir unas horas para leerlo y consultarlo con alguien de confianza.",i:0,d:10,b:0,g:1,f:"Buen reflejo: no decidas con presión. Lo ideal es además buscar asesoría laboral."},
+{t:"No firmar y acudir a la defensoría laboral gratuita.",i:-5,d:20,b:5,g:2,f:"Recibir asesoría antes de firmar protege tu liquidación y tus derechos."}]}
+],
+teen:[
+{e:"📦",t:"Una bodega que paga bien",
+p:"Tienes 16 años. Un conocido te ofrece trabajo en una bodega: cargar cajas pesadas, turnos de 10 horas y a veces de noche. Pagan bien y no piden papeles.",
+k:"Las personas menores de 18 años no deben hacer trabajos peligrosos, pesados ni nocturnos que dañen su salud o su desarrollo (OIT, Convenio 182).",
+o:[
+{t:"Aceptar; el dinero te viene bien.",i:15,d:-20,b:-20,g:0,f:"Cargar peso excesivo, turnos largos y de noche son riesgos que las normas buscan evitar en menores de 18."},
+{t:"Pedir que lo hablen con tu familia y que se hagan los permisos necesarios.",i:0,d:10,b:5,g:1,f:"Involucrar a tu familia es correcto, pero este tipo de trabajo no es adecuado para tu edad ni con permiso."},
+{t:"Rechazar y buscar opciones adecuadas para tu edad, con apoyo de tu familia.",i:-5,d:15,b:10,g:2,f:"Decir que no a lo riesgoso es una decisión valiente. Hay trabajos ligeros y compatibles con la escuela."}]},
+{e:"🎒",t:"Escuela o trabajo",
+p:"Tienes 15 años y conseguiste un trabajo de medio tiempo en una tienda. El horario te obliga a faltar a clases dos días por semana.",
+k:"La edad mínima general para trabajar es 15 años (OIT, Convenio 138), y el trabajo no debe impedir que estudies ni afectar tu desarrollo.",
+o:[
+{t:"Faltar a clases: el trabajo es prioridad.",i:10,d:-10,b:-10,g:0,f:"Abandonar la escuela cierra puertas a largo plazo. El trabajo de menores no debe quitarle espacio a la educación."},
+{t:"Negociar un horario fuera de clases y una jornada reducida.",i:5,d:15,b:10,g:2,f:"Equilibrar estudio y trabajo ligero es posible y es lo que la norma busca proteger."},
+{t:"Dejar el trabajo y no buscar nada más.",i:-10,d:0,b:-5,g:1,f:"Cuidas la escuela, pero quizá había una opción intermedia que te diera ingreso sin sacrificar tus clases."}]},
+{e:"🌙",t:"El “trabajito fácil” de madrugada",
+p:"Una persona mayor te ofrece llevar bebidas en un bar hasta la madrugada, con muy buenas propinas. Te pide que no le cuentes a tu familia.",
+k:"Que te pidan guardar el secreto es una señal de alerta de explotación. Los bares y el trabajo nocturno no son adecuados para menores de 18.",
+o:[
+{t:"Aceptar y mantenerlo en secreto.",i:15,d:-25,b:-25,g:0,f:"Secreto, noche y edad menor de 18 es una combinación de riesgo: nadie sabría dónde estás ni cómo ayudarte."},
+{t:"Preguntar más detalles antes de decidir.",i:0,d:5,b:-5,g:1,f:"Preguntar está bien, pero la señal de alarma ya apareció: nadie debería pedirte ocultar tu trabajo."},
+{t:"Rechazar y contárselo a un adulto de confianza.",i:0,d:20,b:10,g:2,f:"Avisar protege a otros adolescentes y evita que esa persona vuelva a intentarlo."}]},
+{e:"🩹",t:"Un accidente en el taller",
+p:"Trabajas en el taller de un familiar. Te lastimas la mano con una herramienta y tu tío dice: “No le cuentes a nadie, yo te curo”.",
+k:"El trabajo familiar también tiene límites para menores: seguridad, horarios y educación. Todo accidente debe atenderse y registrarse.",
+o:[
+{t:"Aceptar y quedarte callado.",i:0,d:-15,b:-15,g:0,f:"Una herida sin atención puede complicarse, y ocultarla impide corregir los riesgos del lugar."},
+{t:"Ir al médico, pero decir que fue un accidente en casa.",i:0,d:-5,b:5,g:1,f:"Recibes atención, pero se oculta la causa real y el taller seguirá igual de peligroso."},
+{t:"Pedir atención médica y avisar a tus padres o tutores.",i:0,d:15,b:10,g:2,f:"Tu salud va primero. Avisar permite exigir condiciones más seguras."}]}
+]};
+
+const $=s=>document.querySelector(s);
+let mode,idx,st,log;
+function show(id){["intro","game","end"].forEach(x=>$("#"+x).hidden=x!==id);scrollTo(0,0)}
+function start(m){mode=m;idx=0;st={i:50,d:50,b:50};log=[];show("game");render()}
+function meters(){$("#meters").innerHTML=[["💰","Ingreso","i"],["🛡️","Derechos","d"],["💚","Bienestar","b"]].map(([e,n,k])=>`<div class="m">${e} ${n}<div class="bar"><i style="width:${st[k]}%"></i></div></div>`).join("")}
+function render(){
+  const L=D[mode],c=L[idx];
+  meters();
+  $("#prog").textContent="Caso "+(idx+1)+" de "+L.length;
+  $("#emoji").textContent=c.e;$("#title").textContent=c.t;$("#story").textContent=c.p;
+  const box=$("#opts");box.innerHTML="";
+  c.o.forEach((o,n)=>{const b=document.createElement("button");b.className="opt";b.textContent=o.t;b.onclick=()=>pick(n);box.append(b)});
+  $("#fb").hidden=true;scrollTo(0,0);
+}
+function pick(n){
+  const L=D[mode],c=L[idx],o=c.o[n];
+  for(const k of ["i","d","b"])st[k]=Math.max(0,Math.min(100,st[k]+o[k]));
+  log.push(o.g);
+  [...$("#opts").children].forEach((b,j)=>{b.disabled=true;b.classList.add("g"+c.o[j].g);if(j===n)b.classList.add("sel")});
+  $("#fbText").textContent=o.f;$("#fact").textContent=c.k;
+  $("#next").textContent=idx<L.length-1?"Siguiente caso":"Ver resultado";
+  $("#fb").hidden=false;meters();
+  $("#fb").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function next(){idx++;idx<D[mode].length?render():finish()}
+function finish(){
+  const L=D[mode],p=Math.round(log.reduce((a,b)=>a+b,0)/(L.length*2)*100);
+  const r=p>=75?["Defiendes tus derechos","Tomaste decisiones que te protegen. Conocer la ley y hablar a tiempo es tu mejor herramienta."]
+    :p>=40?["Vas por buen camino","Algunas decisiones te protegieron y otras te dejaron expuesto. Repasa las que marcaron ⚠️ y vuelve a jugar."]
+    :["Cuidado: el dinero rápido sale caro","Varias decisiones pusieron en riesgo tu salud o tus derechos. Es normal no saberlo: por eso se aprende. Intenta de nuevo."];
+  $("#score").textContent=p+"%";$("#rt").textContent=r[0];$("#rp").textContent=r[1];
+  $("#rank").innerHTML=L.map((c,n)=>`<li>${["⚠️","🟡","✅"][log[n]]} ${c.e} ${c.t}</li>`).join("");
+  $("#help").textContent=mode==="teen"
+    ?"Si trabajas y algo te preocupa, habla con tu familia, una persona docente o la autoridad laboral de tu país. Nadie debe pedirte que guardes secretos sobre tu trabajo."
+    :"Si te piden condiciones por debajo de la ley, puedes consultar gratis a la autoridad o defensoría laboral de tu país antes de firmar nada.";
+  show("end");
+}
+</script>
+</body>
+</html>
